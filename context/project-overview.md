@@ -148,7 +148,7 @@ Not started. Vite scaffold and AI harness only.
 - A3 Test credentials: `admin@example.com` / `password123`. Fixed in the mock and README. Alt: other values.
 - A4 Captcha header: client sends a fixed `X-Captcha-Token: test-captcha`. Spec says no widget. Alt: random value per login.
 - A5 Fingerprint: 16 random bytes from `crypto.getRandomValues`, hex-encoded. Alt: `crypto.randomUUID()` without dashes.
-- A6 Mock fingerprint check: only `rotate` checks it (mismatch → 400, within the contract's `200 | 400`). `revoke` always returns 204 per the contract and ends the session when the fingerprint matches. Alt: no fingerprint check at all.
+- A6 Mock fingerprint check: `rotate` checks it against the session (mismatch → 400, within the contract's `200 | 400`). `issue` checks it against the fingerprint the device token was issued for at login (mismatch → 422, within `200 | 422`). `revoke` always returns 204 per the contract and ends the session when the fingerprint matches. Alt: no fingerprint check at all.
 - A7 After reload: user signs in again and returns to the originally requested URL with its page/search. Alt: always land on `/webhooks`.
 - A8 Search input: debounced 300 ms, writes `search` to the URL and drops `page`. Typing replaces the current history entry; a page change pushes a new one. Alt: search on Enter/submit.
 - A9 Invalid URL params (`page=abc`, `page=0`): fall back to page 1 / empty search. `page` beyond the last page → redirect (replace) to the last page; with no results, page 1. Alt: show an error.
