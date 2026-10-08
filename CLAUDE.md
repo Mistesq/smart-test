@@ -21,6 +21,6 @@ Package manager: **npm** (`package-lock.json`).
 - **Build**: `npm run build` (`tsc -b && vite build`)
 - **Preview build**: `npm run preview`
 - **Lint**: `npm run lint`
-- **Typecheck**: `npx tsc -b` (root `tsconfig.json` only has project references, so plain `npx tsc --noEmit` checks nothing). TODO: add a `typecheck` script.
-- **Test (once)**: `npx vitest run`. TODO: add `test` / `test:watch` scripts.
-- **Test (watch)**: `npx vitest`
+- **Typecheck**: `npm run typecheck` (`tsc -b`; root `tsconfig.json` only has project references, so plain `npx tsc --noEmit` checks nothing)
+- **Test (once)**: `npm test` (`vitest run`)
+- **Test (watch)**: `npm run test:watch`

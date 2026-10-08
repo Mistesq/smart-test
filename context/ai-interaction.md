@@ -55,7 +55,7 @@ We will create a new branch for every feature/fix. Name branch **feature/[featur
 
 ## Testing
 
-Runner: [Vitest](https://vitest.dev) 5.0 (installed). No `vitest.config.ts` yet, so Vitest reuses `vite.config.ts`; default Node environment. No `test` script yet: run `npx vitest run`.
+Runner: [Vitest](https://vitest.dev) 5.0. `vitest.config.ts` merges `vite.config.ts`, Node environment, setup file `src/test/setup.ts` (msw/node server, `onUnhandledRequest: 'error'`). Run `npm test` (once) or `npm run test:watch`.
 
 - **Scope: logic and utilities.** API clients, Zod schemas, data mappers, custom hooks' pure logic, helpers. No component/UI tests unless asked (no DOM environment or Testing Library is installed).
 - Co-locate tests next to the code as `*.test.ts`.
@@ -63,7 +63,7 @@ Runner: [Vitest](https://vitest.dev) 5.0 (installed). No `vitest.config.ts` yet,
 - Cover the happy path plus the expected failures (invalid input, API errors, empty data).
 - Import test helpers explicitly from `vitest` (no globals).
 
-Run the tests and the typecheck (`npx tsc -b`) before committing.
+Run the tests and the typecheck (`npm run typecheck`) before committing.
 
 ## Code Review
 

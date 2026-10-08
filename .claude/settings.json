@@ -1,8 +1,5 @@
 {
-  "enabledMcpjsonServers": [
-    "context7",
-    "playwright"
-  ],
+  "enabledMcpjsonServers": ["context7", "playwright"],
   "permissions": {
     "allow": [
       "Bash(npm run:*)",
@@ -15,7 +12,10 @@
       "Bash(git branch:*)",
       "Bash(git switch:*)",
       "Bash(git checkout -b:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "PowerShell(npm run preview:*)",
+      "mcp__context7",
+      "mcp__playwright__browser_navigate"
     ],
     "deny": [
       "Read(./.env)",

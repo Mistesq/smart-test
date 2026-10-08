@@ -29,3 +29,4 @@ smart-sender-senior-frontend-test.pdf
 .env.*
 !.env.example
 CLAUDE.local.md
+.playwright-mcp/
