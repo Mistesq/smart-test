@@ -8,7 +8,7 @@ Wire the session layer into the UI: login form and flow, a protected layout that
 
 - `src/features/auth/authStore.ts`: in-memory status `anonymous | authenticated` with a hook (`useSyncExternalStore`). Starts `anonymous` on every page load (A7)
 - Login page (`/login`): react-hook-form + `zodResolver` (email format, password required). MUI TextFields, submit disabled while pending
-- Login flow (`useLogin` mutation): `login` → `issueSession(token)` → `getMe()` seeded into the `['me']` query → status `authenticated` → navigate to `location.state.from` or `/webhooks`. The device token only exists inside this function
+- Login flow (`useLogin` mutation): `login` → `startSession(token)` (from `src/api/session.ts`; it calls `issueSession` and opens a new session generation) → `getMe()` seeded into the `['me']` query → status `authenticated` → navigate to `location.state.from` or `/webhooks`. The device token only exists inside this function
 - Login errors: 422 `fieldErrors` → `setError` on `email` / `password`. Unknown fields or other errors → form-level `Alert`
 - Protected layout route: `anonymous` → `<Navigate to="/login" replace state={{ from: location }} />`, keeping pathname + search. `/login` while `authenticated` → redirect to `/webhooks`
 - `src/components/AppLayout.tsx`: AppBar with `me.name` (from `useMe`) and a Logout button. Logout: `revokeSession()` (errors ignored) → `queryClient.clear()` → status `anonymous` → `/login`
@@ -25,6 +25,7 @@ Wire the session layer into the UI: login form and flow, a protected layout that
 
 ## Notes
 
+- Logout calls a new `endSession()` in `src/api/session.ts` that marks the session expired WITHOUT calling the session-expired handler. Otherwise a 401 that lands after revoke (in-flight or refetching query) goes to rotate → 400 → the expired handler, and the UI shows "Your session has expired" after a deliberate logout (code-scanner finding from API phase 2)
 - Never put the device token, fingerprint or user into the URL. Only `fingerprint` goes to localStorage (already done in API phase 2)
 - One 422 → field mapper, shared with the edit form later (e.g. `src/api/errors.ts` helper or `src/lib/formErrors.ts`)
 - MUI 9: verify TextField props (`slotProps` vs legacy `InputProps`) with Context7

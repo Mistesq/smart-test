@@ -12,6 +12,8 @@ export type RequestOptions<S extends z.ZodType> = {
   path: string
   query?: QueryParams
   body?: unknown
+  // Extra request headers; they cannot override the client's own headers.
+  headers?: Record<string, string>
   // Parses the success body; a 204 response is parsed as `undefined`.
   schema: S
 }
@@ -74,10 +76,21 @@ function buildUrl(path: string, query?: QueryParams): string {
   return `${API_BASE_URL}${path}${search ? `?${search}` : ''}`
 }
 
-async function send(method: HttpMethod, url: string, json: string | undefined, csrfToken: string): Promise<Response> {
-  const headers: Record<string, string> = { ...BASE_HEADERS, Accept: 'application/json' }
-  if (method !== 'GET') headers['X-CSRF-TOKEN'] = csrfToken
-  if (json !== undefined) headers['Content-Type'] = 'application/json'
+type SendOptions = {
+  method: HttpMethod
+  url: string
+  json: string | undefined
+  extraHeaders: Record<string, string> | undefined
+  csrfToken: string
+}
+
+async function send({ method, url, json, extraHeaders, csrfToken }: SendOptions): Promise<Response> {
+  // Header names are case-insensitive, so set() replaces an extra header in any letter case.
+  const headers = new Headers(extraHeaders)
+  for (const [name, value] of Object.entries(BASE_HEADERS)) headers.set(name, value)
+  headers.set('Accept', 'application/json')
+  if (method !== 'GET') headers.set('X-CSRF-TOKEN', csrfToken)
+  if (json !== undefined) headers.set('Content-Type', 'application/json')
 
   try {
     return await fetch(url, { method, headers, body: json })
@@ -100,7 +113,7 @@ async function parseSuccess<S extends z.ZodType>(response: Response, schema: S):
 // The only place that talks to the API. Retry limits are local to each call:
 // one retry after 419 (fresh CSRF token) and one after 401 (when the handler asks for it).
 export async function request<S extends z.ZodType>(options: RequestOptions<S>): Promise<z.output<S>> {
-  const { method = 'GET', path, query, body, schema } = options
+  const { method = 'GET', path, query, body, headers, schema } = options
   const url = buildUrl(path, query)
   // Serialized before any network call: a body that cannot be serialized is a bug, not a network failure.
   const json = body === undefined ? undefined : JSON.stringify(body)
@@ -110,7 +123,7 @@ export async function request<S extends z.ZodType>(options: RequestOptions<S>): 
   for (;;) {
     const csrfToken = await ensureCsrfToken()
     const onUnauthorized = prepareUnauthorizedHandler?.()
-    const response = await send(method, url, json, csrfToken)
+    const response = await send({ method, url, json, extraHeaders: headers, csrfToken })
     if (response.ok) return parseSuccess(response, schema)
 
     const error = parseApiError(response.status, await readJson(response))

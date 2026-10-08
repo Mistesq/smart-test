@@ -1,7 +1,10 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { installSessionHandling } from './api/session.ts'
 import { App } from './app/App.tsx'
 import { worker } from './mocks/browser.ts'
+
+installSessionHandling()
 
 // There is no real API, so the mock worker runs in dev and production builds alike (A12).
 async function enableMocking() {

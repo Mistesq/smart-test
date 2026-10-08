@@ -93,6 +93,28 @@ describe('httpClient: headers and CSRF', () => {
     expect(get.requests[0].headers.get('X-CSRF-TOKEN')).toBeNull()
   })
 
+  it('sends extra headers, but they cannot override the client headers in any letter case', async () => {
+    useCountingCsrf()
+    const endpoint = useEndpoint('post', ok)
+
+    await request({
+      method: 'POST',
+      path: '/test/endpoint',
+      headers: {
+        'X-Captcha-Token': 'captcha',
+        'X-Requested-With': 'other',
+        'x-requested-with': 'other',
+        'x-csrf-token': 'forged',
+      },
+      schema: okSchema,
+    })
+
+    const { headers } = endpoint.requests[0]
+    expect(headers.get('X-Captcha-Token')).toBe('captcha')
+    expect(headers.get('X-Requested-With')).toBe('XMLHttpRequest')
+    expect(headers.get('X-CSRF-TOKEN')).toBe('token-1')
+  })
+
   it('refetches the token after a 419 and retries once', async () => {
     const csrf = useCountingCsrf()
     const endpoint = useEndpoint('post', (_request, call) => (call === 1 ? tokenMismatch() : ok()))

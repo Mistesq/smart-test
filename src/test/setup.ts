@@ -1,6 +1,7 @@
 import { afterAll, afterEach, beforeAll } from 'vitest'
 import { resetCsrfToken } from '../api/csrf.ts'
 import { resetHttpClient } from '../api/httpClient.ts'
+import { resetSession } from '../api/session.ts'
 import { resetDb } from '../mocks/db.ts'
 import { server } from '../mocks/node.ts'
 
@@ -10,5 +11,6 @@ afterEach(() => {
   resetDb()
   resetCsrfToken()
   resetHttpClient()
+  resetSession()
 })
 afterAll(() => server.close())
