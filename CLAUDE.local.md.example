@@ -1,0 +1,16 @@
+# Local AI Overrides (gitignored)
+
+Copy this file to `CLAUDE.local.md` and fill in machine/account-specific values.
+`CLAUDE.local.md` is gitignored, so secrets and infra IDs never get committed.
+Claude Code loads it automatically alongside CLAUDE.md.
+
+## Database (MCP) branch IDs
+
+<!-- Only needed if CLAUDE.md keeps the "Database Access Rules" block. -->
+
+- development branchId: `br-xxxx-dev`
+- production  branchId: `br-xxxx-prod`   # referenced only so the AI knows what NOT to touch
+
+## Anything else machine-specific
+
+- <local paths, ports, personal tokens read via env, etc.>
