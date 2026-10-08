@@ -40,7 +40,7 @@ Signed in via the console flow from mock phase 1 (`/csrf` → login → issue):
 
 1. `GET /v1/webhooks?page=1&limit=10` → 10 items, `results.total` 28, `pages.last` 3
 2. `GET /v1/webhooks?page=3&limit=10` → 8 items. `page=4` → `data: []`
-3. `GET /v1/webhooks?search=SLACK` → only names containing "slack" (any case), `total` matches
+3. `GET /v1/webhooks?search=ORDER` → only names containing "order" (any case), `total` 4
 4. `GET /v1/webhooks/9999` → 404 envelope
 5. PUT `{ "name": "", "url": "ftp://x" }` → 422 with `name` and `url` payloads. Valid body → 200 and the list shows the new name
 6. PUT without `X-CSRF-TOKEN` → 419. Any `/v1/*` after 30 s without rotate → 401

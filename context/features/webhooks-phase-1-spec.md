@@ -32,8 +32,8 @@ The webhook list: typed endpoint and query hook, a table with search and paginat
 ## Testing
 
 1. `/webhooks` → 10 rows, 3 pages. Page 2 → URL `?page=2`. Back → page 1, Forward → page 2
-2. Type "slack" → after ~300 ms URL `?search=slack` (no `page`), one history entry for the whole typing
-3. Reload `/webhooks?page=2&search=hook` → same page and search restored (after re-login)
+2. Type "order" → after ~300 ms URL `?search=order` (no `page`), 4 rows, one history entry for the whole typing
+3. Reload `/webhooks?page=2&search=ate` → same page and search restored (after re-login). "ate" matches the 14 "created"/"updated" webhooks, so page 2 has 4 rows
 4. `/webhooks?page=abc` → page 1. `/webhooks?page=99` → replaced with the last page
 5. Search "zzz" → empty state. Force a handler error from the console via `window.__msw.use(...)` (dev only, exposed in setup phase 1) → error state with working Retry
 6. Wait 30 s, change page → network shows 401 → one rotate → retried list request 200

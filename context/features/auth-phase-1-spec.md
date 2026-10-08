@@ -32,9 +32,9 @@ Wire the session layer into the UI: login form and flow, a protected layout that
 
 ## Testing
 
-1. Open `/webhooks?page=2&search=hook` signed out → redirected to `/login`
+1. Open `/webhooks?page=2&search=ate` signed out → redirected to `/login` ("ate" matches 14 webhooks, so page 2 exists)
 2. Wrong password → error under the password field. Empty email → client error, no request sent
-3. Correct credentials (`admin@example.com` / `password123`) → back on `/webhooks?page=2&search=hook`. Network: `/csrf` once, then login → issue → `/v1/me`
+3. Correct credentials (`admin@example.com` / `password123`) → back on `/webhooks?page=2&search=ate`. Network: `/csrf` once, then login → issue → `/v1/me`
 4. App bar shows the user's name. Logout → `revoke` 204 → `/login`. Browser Back → redirected to login, no cached data shown
 5. Reload while signed in → login page, then back to the same URL after signing in
 6. `npm run typecheck`, `npm run lint`, `npm test` pass

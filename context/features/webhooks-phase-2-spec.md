@@ -30,9 +30,9 @@ The edit page for a webhook's name and URL: loads by id, validates on the client
 
 ## Testing
 
-1. From `/webhooks?page=2&search=hook`, click a row → edit page with name and URL filled
+1. From `/webhooks?page=2&search=ate` ("ate" matches 14 webhooks), click a row → edit page with name and URL filled
 2. Clear the name → client error under Name, no request sent. URL `ftp://x` → request is sent → 422 → server message shown under the URL field
-3. Change the name → Save → back on `/webhooks?page=2&search=hook` with the new name in the table
+3. Change the name, keeping "ate" in it → Save → back on `/webhooks?page=2&search=ate` with the new name in the table
 4. `/webhooks/9999/edit` → not-found message with a working link back
 5. Wait 30 s, then Save → PUT 401 → one rotate → PUT retried → success
 6. `npm test` (422 mapping test), `npm run typecheck`, `npm run lint` pass
