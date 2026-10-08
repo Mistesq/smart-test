@@ -57,6 +57,13 @@ export function isApiError(error: unknown): error is ApiError {
   return error instanceof ApiError
 }
 
+// The one place that turns any thrown value into a message for the user. Server messages are English (A2)
+// and shown as-is; anything that is not an API or network error gets the generic message.
+export function getErrorMessage(error: unknown): string {
+  if (error instanceof ApiError || error instanceof NetworkError) return error.message
+  return GENERIC_ERROR_MESSAGE
+}
+
 export function parseApiError(status: number, body: unknown): ApiError {
   const envelope = errorEnvelopeSchema.safeParse(body)
   if (!envelope.success) {

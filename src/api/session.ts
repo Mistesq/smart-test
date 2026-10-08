@@ -30,6 +30,13 @@ export async function startSession(deviceSessionToken: string): Promise<void> {
   expired = false
 }
 
+// Deliberate logout: every later 401 fails at once, without a rotate and without the session-expired handler.
+// A rotate still in flight is dropped, so a 401 after the next startSession() cannot join its stale result.
+export function endSession(): void {
+  expired = true
+  rotating = null
+}
+
 function expireSession(): void {
   if (expired) return
   expired = true

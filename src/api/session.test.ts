@@ -5,7 +5,7 @@ import { errorResponse } from '../mocks/errors.ts'
 import { server } from '../mocks/node.ts'
 import { getMe, login, revokeSession } from './auth.ts'
 import { ApiError } from './errors.ts'
-import { installSessionHandling, setSessionExpiredHandler, startSession } from './session.ts'
+import { endSession, installSessionHandling, setSessionExpiredHandler, startSession } from './session.ts'
 
 type MockedResponse = { path: string; status: number }
 
@@ -221,5 +221,91 @@ describe('session: expiry', () => {
     await expect(getMe()).rejects.toMatchObject({ status: 401 })
     expect(responses.count('/auth/token/rotate')).toBe(2)
     expect(onExpired).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe('session: logout', () => {
+  it('fails a 401 after logout without a rotate or the expired handler', async () => {
+    const responses = recordResponses()
+    const onExpired = vi.fn()
+    setSessionExpiredHandler(onExpired)
+    await signIn()
+
+    endSession()
+    await revokeSession()
+
+    await expect(getMe()).rejects.toMatchObject({ status: 401 })
+    expect(responses.count('/auth/token/rotate')).toBe(0)
+    expect(onExpired).not.toHaveBeenCalled()
+  })
+
+  it('fails a request whose rotate finishes after logout without the expired handler', async () => {
+    const onExpired = vi.fn()
+    setSessionExpiredHandler(onExpired)
+    await signIn()
+    moveClockPastSessionTtl()
+    const rotateArrived = deferred()
+    const releaseRotate = deferred()
+    server.use(
+      http.post(
+        '*/auth/token/rotate',
+        async () => {
+          rotateArrived.resolve()
+          await releaseRotate.promise
+          return errorResponse(400, 'The session cannot be rotated.')
+        },
+        { once: true },
+      ),
+    )
+
+    const pending = getMe()
+    await rotateArrived.promise
+    endSession()
+    releaseRotate.resolve()
+
+    await expect(pending).rejects.toMatchObject({ status: 401 })
+    expect(onExpired).not.toHaveBeenCalled()
+  })
+
+  it('does not let a rotate still in flight at logout expire the next session', async () => {
+    const onExpired = vi.fn()
+    setSessionExpiredHandler(onExpired)
+    await signIn()
+    moveClockPastSessionTtl()
+    const rotateArrived = deferred()
+    const releaseRotate = deferred()
+    server.use(
+      http.post(
+        '*/auth/token/rotate',
+        async () => {
+          rotateArrived.resolve()
+          await releaseRotate.promise
+          return errorResponse(400, 'The session cannot be rotated.')
+        },
+        { once: true },
+      ),
+    )
+
+    // Its rotate is held across a logout and a new sign-in, then fails.
+    const stale = getMe()
+    await rotateArrived.promise
+    endSession()
+    await signIn()
+    server.use(http.get('*/v1/me', unauthorized, { once: true }))
+
+    await expect(getMe()).resolves.toEqual(USER)
+    releaseRotate.resolve()
+    await expect(stale).resolves.toEqual(USER)
+    expect(onExpired).not.toHaveBeenCalled()
+  })
+
+  it('works again after the next sign-in', async () => {
+    await signIn()
+    endSession()
+    await revokeSession()
+
+    await signIn()
+
+    await expect(getMe()).resolves.toEqual(USER)
   })
 })
