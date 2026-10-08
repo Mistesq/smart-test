@@ -3,6 +3,7 @@ import { AppLayout } from '../components/AppLayout.tsx'
 import { NotFoundPage } from '../components/NotFoundPage.tsx'
 import { LoginPage } from '../features/auth/LoginPage.tsx'
 import { ProtectedRoute } from '../features/auth/ProtectedRoute.tsx'
+import { WebhooksPage } from '../features/webhooks/WebhooksPage.tsx'
 import { PlaceholderPage } from './PlaceholderPage.tsx'
 
 export const router = createBrowserRouter([
@@ -14,7 +15,7 @@ export const router = createBrowserRouter([
       {
         element: <AppLayout />,
         children: [
-          { path: '/webhooks', element: <PlaceholderPage title="Webhooks" /> },
+          { path: '/webhooks', element: <WebhooksPage /> },
           { path: '/webhooks/:id/edit', element: <PlaceholderPage title="Edit webhook" /> },
         ],
       },

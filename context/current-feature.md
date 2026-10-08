@@ -1,4 +1,4 @@
-# Current Feature
+# Current Feature: Webhooks Phase 1 - List with URL State
 
 <!-- H1 gets the feature name when active, e.g. "# Current Feature: Add Navbar" -->
 
@@ -6,15 +6,65 @@
 
 <!-- Not Started | In Progress | Complete -->
 
-Not Started
+In Progress
 
 ## Goals
 
 <!-- Checklist of what success looks like, filled by `/feature load`. Each goal is checked off when done, so the list doubles as plan vs actual. -->
 
+- [x] `src/api/webhooks.ts`: `getWebhooks({ page, limit, search })`, `getWebhook(id)`, `updateWebhook(id, { name, url })` with `Webhook` / `WebhookList` Zod schemas (detail and update are used by phase 2)
+- [x] `src/features/webhooks/listParams.ts`: parse `page` and `search` from `URLSearchParams` with Zod (invalid or `< 1` page → 1, missing search → `''`, A9) plus a builder that omits defaults (`page=1`, empty search) from the URL; unit tested in `listParams.test.ts`
+- [x] `useWebhooks(params)`: query key `['webhooks', { page, search }]`, `limit` 10, `placeholderData: keepPreviousData`
+- [x] `WebhookSearch`: debounced 300 ms, writes `search` and drops `page` with `replace: true` (A8); input re-syncs from the URL on back/forward
+- [x] MUI `Pagination` (1-based): a page change pushes a new history entry; `page > pages.last` → replace with the last page (A9)
+- [x] `WebhooksTable`: name, URL, active (Chip); each row links to `/webhooks/:id/edit`, passing the current list search string so the edit page can go back to it
+- [x] States: loading (skeleton or progress), empty ("No webhooks found" mentioning the search), error (`Alert` + Retry via `refetch`)
+- [x] `src/app/router.tsx`: `/webhooks` renders `WebhooksPage`
+- [x] Dev only: `window.__msw` exposes `{ worker, http, HttpResponse }` so handlers can be overridden from the console without imports
+
 ## Notes
 
 <!-- Additional context, constraints, API contract, out of scope. -->
+
+**Files**: `src/api/webhooks.ts`; `src/features/webhooks/listParams.ts`, `listParams.test.ts`, `useWebhooks.ts`, `WebhooksPage.tsx`, `WebhooksTable.tsx`, `WebhookSearch.tsx`; update `src/app/router.tsx`.
+
+**Contract**:
+
+- `GET /v1/webhooks?page=&limit=&search=` → 200 `WebhookList` | 401
+- `GET /v1/webhooks/{id}` → 200 `Webhook` | 401 | 404
+- `PUT /v1/webhooks/{id}` `{ name, url }` → 200 `Webhook` | 401 | 422 (404 for an unknown id, outside the brief)
+- `Webhook = { id, name, url, active, created_at }`
+- `WebhookList = { data: Webhook[], paging: { pages: { current, last }, results: { total, limitation } } }`; mock: `last = max(1, ceil(total / limit))`
+
+**Constraints and gotchas**:
+
+- The URL is the single source of truth: no `useState` copies of `page`/`search` except the raw search input text
+- Search is trimmed before it goes to the URL; the input keeps the raw text. Debounce loop guard: compare the trimmed debounced value with the URL value and skip the write when they are equal
+- Row link passes the list search string via router `state` (`{ listSearch }`); the URL stays clean, and on an edit-page reload the state is lost, so the back link falls back to `/webhooks`
+- TanStack Query v5: `keepPreviousData` is a helper passed to `placeholderData`. Verify with Context7
+- MUI `Pagination` is 1-based; `TablePagination` is 0-based. Do not mix them
+- With no results (`total = 0`, `last = 1`) page 1 stays (A9)
+- Carried over from auth-phase-1: re-check the session-expiry redirect in the UI (rotate failure → login with "Your session has expired", original list URL kept)
+- Console override (dev only): `__msw.worker.use(__msw.http.get('*/v1/webhooks', () => __msw.HttpResponse.json({ error: { type: 'ServerError', message: 'Boom' } }, { status: 500 })))`, then `__msw.worker.resetHandlers()` before Retry
+
+**Review fixes**: an empty placeholder (the previous search had no results) shows the loading state instead of "No webhooks found" for the new search; browser-checked with a delayed handler (empty placeholder → spinner, non-empty placeholder → dimmed rows).
+
+**Accepted**:
+
+- A background refetch error on a list key that already has cached data (only on remount, `refetchOnWindowFocus` is off) replaces the table with the error `Alert`; Retry works
+- A keystroke landing in the few ms while the search input's own URL write is applied can be reset to the written value (losing that character); fixing it needs extra state for a near-impossible race
+
+**Out of scope**: edit page, client validation, 422 mapping, cache updates after save (webhooks-phase-2); README (delivery-phase-1).
+
+**Testing steps** (review checks against them):
+
+1. `/webhooks` → 10 rows, 3 pages. Page 2 → URL `?page=2`. Back → page 1, Forward → page 2
+2. Type "order" → after ~300 ms URL `?search=order` (no `page`), 4 rows, one history entry for the whole typing
+3. Reload `/webhooks?page=2&search=ate` → same page and search restored (after re-login). "ate" matches the 14 "created"/"updated" webhooks, so page 2 has 4 rows
+4. `/webhooks?page=abc` → page 1. `/webhooks?page=99` → replaced with the last page
+5. Search "zzz" → empty state. Force a handler error from the console via `window.__msw.use(...)` (dev only) → error state with working Retry
+6. Wait 30 s, change page → network shows 401 → one rotate → retried list request 200
+7. `npm test` (listParams tests), `npm run typecheck`, `npm run lint` pass
 
 ## History
 

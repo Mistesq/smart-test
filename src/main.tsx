@@ -1,3 +1,4 @@
+import { http, HttpResponse } from 'msw'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { installSessionHandling, setSessionExpiredHandler } from './api/session.ts'
@@ -17,7 +18,7 @@ setSessionExpiredHandler(() => {
 async function enableMocking() {
   await worker.start({ onUnhandledRequest: 'bypass' })
   if (import.meta.env.DEV) {
-    window.__msw = worker
+    window.__msw = { worker, http, HttpResponse }
   }
 }
 
