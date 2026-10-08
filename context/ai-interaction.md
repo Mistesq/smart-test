@@ -55,17 +55,15 @@ We will create a new branch for every feature/fix. Name branch **feature/[featur
 
 ## Testing
 
-<!-- /bootstrap adapts this section to the real test runner, config and mocking style. -->
+Runner: [Vitest](https://vitest.dev) 5.0 (installed). No `vitest.config.ts` yet, so Vitest reuses `vite.config.ts`; default Node environment. No `test` script yet: run `npx vitest run`.
 
-Default: [Vitest](https://vitest.dev), Node environment.
-
-- **Scope: business logic and utilities.** Services, server actions, validation schemas, pure helpers. No component/UI tests unless asked.
+- **Scope: logic and utilities.** API clients, Zod schemas, data mappers, custom hooks' pure logic, helpers. No component/UI tests unless asked (no DOM environment or Testing Library is installed).
 - Co-locate tests next to the code as `*.test.ts`.
-- Keep tests true units: **no real database, network, or auth**. Mock collaborators with `vi.mock(...)`; define mock objects with `vi.hoisted()` so the hoisted `vi.mock` factory can reference them.
-- Cover the happy path plus the expected failures (invalid input, not found, conflict, unauthorized).
+- Keep tests true units: **no real network or auth**. Mock modules with `vi.mock(...)`; define mock objects with `vi.hoisted()` so the hoisted `vi.mock` factory can reference them. For code that calls `fetch`, prefer MSW handlers via `msw/node` (`setupServer`) over stubbing `fetch`.
+- Cover the happy path plus the expected failures (invalid input, API errors, empty data).
 - Import test helpers explicitly from `vitest` (no globals).
 
-Run the tests and the typecheck before committing.
+Run the tests and the typecheck (`npx tsc -b`) before committing.
 
 ## Code Review
 

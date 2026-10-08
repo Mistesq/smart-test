@@ -6,19 +6,16 @@
   "permissions": {
     "allow": [
       "Bash(npm run:*)",
-      "Bash(npm test:*)",
       "Bash(npx tsc:*)",
-      "Bash(npx prisma generate:*)",
-      "Bash(npx prisma migrate status:*)",
+      "Bash(npx vitest:*)",
+      "Bash(npx eslint:*)",
       "Bash(git status:*)",
       "Bash(git diff:*)",
       "Bash(git log:*)",
       "Bash(git branch:*)",
       "Bash(git switch:*)",
       "Bash(git checkout -b:*)",
-      "Bash(git add:*)",
-      "Bash(docker compose ps:*)",
-      "Bash(docker compose logs:*)"
+      "Bash(git add:*)"
     ],
     "deny": [
       "Read(./.env)",
