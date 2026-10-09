@@ -89,7 +89,7 @@ Mock state: user, webhooks, session `{ fingerprint, expiresAt } | null`, issued 
 
 - **Type**: client-side SPA; the whole API is mocked with MSW (no backend)
 - **Build / dev**: Vite 8, `@vitejs/plugin-react` 6
-- **Language**: TypeScript 6 (strict by default)
+- **Language**: TypeScript 6 (`strict: true`)
 - **UI**: React 19, MUI 9 (`@mui/material`) with Emotion
 - **Routing**: react-router 8
 - **Server state**: TanStack Query 5

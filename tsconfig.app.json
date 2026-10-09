@@ -17,6 +17,8 @@
     "jsx": "react-jsx",
 
     /* Linting */
+    /* On by default since TS 6, set explicitly to make it visible */
+    "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,

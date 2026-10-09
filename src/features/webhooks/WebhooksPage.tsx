@@ -50,7 +50,6 @@ function WebhooksResult({ params, onPageChange }: WebhooksResultProps) {
 
   if (query.isPending) return <LoadingState />
 
-
   if (query.isError) {
     return (
       <Alert

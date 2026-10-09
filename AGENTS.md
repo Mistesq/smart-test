@@ -14,7 +14,7 @@ Stack notes for this repo (installed versions):
 
 - **Vite 8.3** + `@vitejs/plugin-react` 6.1 (Oxc transform). Client-side SPA, no SSR.
 - **React 19.3** / react-dom 19.3. React Compiler is not enabled.
-- **TypeScript 6.0**: `strict` is on by default (not set explicitly in tsconfig). Project references: run `tsc -b`.
+- **TypeScript 6.0**: `strict` is on by default and also set explicitly in `tsconfig.app.json` / `tsconfig.node.json`. Project references: run `tsc -b`.
 - **MUI (`@mui/material`) 9.4** with Emotion 11. Major version jumps since v5/v6, so check the v9 API before using Grid, system props, theming or slots.
 - **react-router 8.4**: import from `react-router`, not `react-router-dom`.
 - **@tanstack/react-query 5.104** for server state.

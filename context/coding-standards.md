@@ -2,7 +2,7 @@
 
 ## TypeScript
 
-- Strict mode (TS 6 default, keep it on). `noUnusedLocals`, `noUnusedParameters`, `erasableSyntaxOnly`, `verbatimModuleSyntax` are set in `tsconfig.app.json`
+- Strict mode (TS 6 default, set explicitly, keep it on). `strict`, `noUnusedLocals`, `noUnusedParameters`, `erasableSyntaxOnly`, `verbatimModuleSyntax` are set in `tsconfig.app.json`
 - `verbatimModuleSyntax`: use `import type` for type-only imports
 - `erasableSyntaxOnly`: no `enum`, `namespace` or constructor parameter properties. Use union types / `as const` objects
 - No `any` types. Use proper typing or `unknown` and narrow
