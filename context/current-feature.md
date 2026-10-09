@@ -1,4 +1,4 @@
-# Current Feature
+# Current Feature: Webhooks Phase 2 - Edit Form with Server Errors
 
 <!-- H1 gets the feature name when active, e.g. "# Current Feature: Add Navbar" -->
 
@@ -6,15 +6,41 @@
 
 <!-- Not Started | In Progress | Complete -->
 
-Not Started
+In Progress
 
 ## Goals
 
 <!-- Checklist of what success looks like, filled by `/feature load`. Each goal is checked off when done, so the list doubles as plan vs actual. -->
 
+- [x] `:id` route param validated with Zod (positive integer) before any API call; invalid id → not-found state, no request
+- [x] `useWebhook(id)` query (`['webhook', id]`) in `src/features/webhooks/useWebhook.ts`
+- [x] `WebhookEditPage` at `/webhooks/:id/edit` (replaces the placeholder in `router.tsx`): loading state; 404 → "Webhook not found" with a link back to the list; other errors → `Alert` + Retry
+- [x] `webhookFormSchema.ts`: `name` and `url` required after trim (A11). No URL format rule on the client
+- [x] Form: react-hook-form + `zodResolver`, default values from the loaded webhook
+- [x] `useUpdateWebhook` mutation → `updateWebhook(id, body)`. Save disabled while submitting or when the form is not dirty
+- [x] 422 → shared `applyFormError` from `src/lib/formErrors.ts` → first message under `name` / `url`; unknown payload keys and other errors → form-level `Alert` (`root.serverError`)
+- [x] Success (A10): `setQueryData(['webhook', id], updated)`, invalidate `WEBHOOKS_QUERY_KEY`, navigate back to the list with its original search string
+- [x] Cancel → back to the list with its original search string; direct visit (no list state) → `/webhooks`
+- [x] `src/features/webhooks/updateWebhook.test.ts`: `updateWebhook` against the mock with an invalid URL → `ApiError` 422 → `mapFormError` returns `{ url: '...' }`
+
 ## Notes
 
 <!-- Additional context, constraints, API contract, out of scope. -->
+
+- Contract: `GET /v1/webhooks/{id}` → 200 `Webhook` | 401 | 404; `PUT /v1/webhooks/{id}` `{ name, url }` → 200 `Webhook` | 401 | 422 (419 handled by the client). Mock also returns 404 on PUT for an unknown id (to be noted in README)
+- API functions already exist in `src/api/webhooks.ts` (`getWebhook`, `updateWebhook`, `WebhookInput`). Do not add new ones
+- Reuse `mapFormError` / `applyFormError` / `FORM_ERROR_KEY` from `src/lib/formErrors.ts`. No second mapper
+- The URL format rule is deliberately server-only, so the 422 path is visible in the UI. The server stays the source of truth
+- Return target: the list row passes `ListLinkState` (`{ listSearch }`) as router state. Location state is external input (survives reload in history), so validate it with Zod before using it in a navigation; anything invalid → `/webhooks`
+- `['webhook', id]` and `['webhooks', ...]` are separate key roots, so invalidating `WEBHOOKS_QUERY_KEY` does not touch the detail cache
+- Out of scope: toggling `active`, creating or deleting webhooks, success toast, modal edit (A1 alt)
+- Testing steps (from the spec):
+  1. From `/webhooks?page=2&search=ate` ("ate" matches 14 webhooks), click a row → edit page with name and URL filled
+  2. Clear the name → client error under Name, no request sent. URL `ftp://x` → request is sent → 422 → server message shown under the URL field
+  3. Change the name, keeping "ate" in it → Save → back on `/webhooks?page=2&search=ate` with the new name in the table
+  4. `/webhooks/9999/edit` → not-found message with a working link back
+  5. Wait 30 s, then Save → PUT 401 → one rotate → PUT retried → success
+  6. `npm test` (422 mapping test), `npm run typecheck`, `npm run lint` pass
 
 ## History
 

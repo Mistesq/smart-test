@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildListSearchParams, parseListParams, toListSearch } from './listParams.ts'
+import { buildListSearchParams, getListReturnTarget, parseListParams, toListSearch } from './listParams.ts'
 
 const parse = (search: string) => parseListParams(new URLSearchParams(search))
 
@@ -52,5 +52,21 @@ describe('toListSearch', () => {
   it('returns a location search string', () => {
     expect(toListSearch({ page: 2, search: 'ate' })).toBe('?page=2&search=ate')
     expect(toListSearch({ page: 1, search: '' })).toBe('')
+  })
+})
+
+describe('getListReturnTarget', () => {
+  it('returns to the list with the page and search the row link carried', () => {
+    expect(getListReturnTarget({ listSearch: '?page=2&search=ate' })).toBe('/webhooks?page=2&search=ate')
+    expect(getListReturnTarget({ listSearch: '' })).toBe('/webhooks')
+  })
+
+  it.each([null, undefined, 'state', {}, { listSearch: 2 }])('falls back to the plain list for state %j', (state) => {
+    expect(getListReturnTarget(state)).toBe('/webhooks')
+  })
+
+  it('keeps only valid list params', () => {
+    expect(getListReturnTarget({ listSearch: '?page=abc&search=%20order%20&x=1' })).toBe('/webhooks?search=order')
+    expect(getListReturnTarget({ listSearch: '//evil.example' })).toBe('/webhooks')
   })
 })
