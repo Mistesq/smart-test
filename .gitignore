@@ -22,7 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-smart-sender-senior-frontend-test.pdf
+# The original spec (not committed)
+*.pdf
 
 # AI harness
 .env

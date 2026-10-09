@@ -1,4 +1,4 @@
-const FINGERPRINT_STORAGE_KEY = 'smart-sender.fingerprint'
+const FINGERPRINT_STORAGE_KEY = 'smart-test.fingerprint'
 const FINGERPRINT_PATTERN = /^[0-9a-f]{32}$/
 const FINGERPRINT_BYTES = 16
 

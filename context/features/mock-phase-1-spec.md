@@ -31,7 +31,7 @@ Implement the mock backend's state and the CSRF/auth part of the contract with M
 - MSW 2 API: `http`, `HttpResponse` from `msw`. Verify with Context7
 - Use `Date.now()` for all session time checks, so tests can move time with Vitest fake timers. TTL as a constant `SESSION_TTL_MS = 30_000`
 - Validate request bodies with Zod inside handlers. Never trust the client
-- Mock state lives in the page (MSW runs handlers in the client), so a reload resets it. That is expected per the brief
+- Mock state lives in the page (MSW runs handlers in the client), so a reload resets it. That is expected per the spec
 - Do not add the session token to responses or headers: the client never sees it
 
 ## Testing

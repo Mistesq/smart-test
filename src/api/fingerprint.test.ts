@@ -25,18 +25,18 @@ describe('getFingerprint', () => {
 
   it('reuses a fingerprint already saved in storage', () => {
     const saved = 'abcdef0123456789abcdef0123456789'
-    const { storage } = createStorage({ 'smart-sender.fingerprint': saved })
+    const { storage } = createStorage({ 'smart-test.fingerprint': saved })
 
     expect(getFingerprint(storage)).toBe(saved)
   })
 
   it('replaces a malformed saved value', () => {
-    const { storage, items } = createStorage({ 'smart-sender.fingerprint': 'not-a-fingerprint' })
+    const { storage, items } = createStorage({ 'smart-test.fingerprint': 'not-a-fingerprint' })
 
     const fingerprint = getFingerprint(storage)
 
     expect(fingerprint).toMatch(/^[0-9a-f]{32}$/)
-    expect(items.get('smart-sender.fingerprint')).toBe(fingerprint)
+    expect(items.get('smart-test.fingerprint')).toBe(fingerprint)
   })
 
   it('keeps one fingerprint for the page when storage throws on read and write', () => {

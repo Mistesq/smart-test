@@ -1,16 +1,16 @@
-# smart-sender-test Project Specifications
+# smart-test Project Specifications
 
-Source: `smart-sender-senior-frontend-test.pdf` (Smart Sender, Senior Frontend Engineer test assignment, gitignored).
+Source: the original spec PDF in the repo root (gitignored).
 
 ## Problem (Core Idea)
 
-A small SPA to sign in, browse and edit webhooks against an API that is fully mocked with MSW. The real subject of the assignment is a correct client session: device-token login, a 30-second session with transparent rotate-and-retry, a single shared rotate for concurrent 401s, CSRF handling, URL-driven list state and server-side form errors.
+A small SPA to sign in, browse and edit webhooks against an API that is fully mocked with MSW. The real subject of the project is a correct client session: device-token login, a 30-second session with transparent rotate-and-retry, a single shared rotate for concurrent 401s, CSRF handling, URL-driven list state and server-side form errors.
 
-Constraints: about 4 hours of work, 7-day deadline. Anything unfinished goes in README. Reviewers grade logic, architecture, typing and readability, not visuals. Architecture must fit the task size (no monorepo or complex infra).
+Constraints: small scope. Anything unfinished goes in README. Priorities: logic, architecture, typing and readability, not visuals. Architecture must fit the task size (no monorepo or complex infra).
 
 ## Users
 
-- **Reviewer**: runs the app and the test from README, signs in with the test credentials, checks session behaviour, list URL state and edit errors.
+- **Developer**: runs the app and the test from README, signs in with the test credentials, checks session behaviour, list URL state and edit errors.
 - **Signed-in user** (single mock user): views webhooks and edits their name and URL.
 
 ## Core Features
@@ -98,7 +98,7 @@ Mock state: user, webhooks, session `{ fingerprint, expiresAt } | null`, issued 
 - **HTTP**: native `fetch` wrapper (no axios)
 - **Testing**: Vitest 5
 - **Lint**: ESLint 10 flat config + typescript-eslint
-- **Deployment**: none for now (decided). Reviewers run it locally per README
+- **Deployment**: none for now (decided). Run locally per README
 
 ## Architecture Notes
 

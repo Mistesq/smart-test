@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { getFingerprint } from './fingerprint.ts'
 import { request } from './httpClient.ts'
 
-// No captcha widget in this assignment; the mock only checks that the header is not empty (A4).
+// No captcha widget in this app; the mock only checks that the header is not empty (A4).
 const CAPTCHA_TOKEN = 'test-captcha'
 
 export const userSchema = z.object({

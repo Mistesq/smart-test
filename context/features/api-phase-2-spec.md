@@ -2,7 +2,7 @@
 
 ## Overview
 
-Add the session layer to the HTTP client: one shared rotate for concurrent 401s, one retry per request, session-expired signalling, the fingerprint, and the typed auth endpoints. Includes the one automated test the brief requires.
+Add the session layer to the HTTP client: one shared rotate for concurrent 401s, one retry per request, session-expired signalling, the fingerprint, and the typed auth endpoints. Includes the one automated test the spec requires.
 
 ## Requirements
 
@@ -25,7 +25,7 @@ Add the session layer to the HTTP client: one shared rotate for concurrent 401s,
 
 ## Notes
 
-- The required test is graded: name it clearly, e.g. `two parallel 401s share one rotate and both retries succeed`. Use the real mock handlers: `resetDb()` → login → issue → move time past 30 s → two parallel `GET /v1/webhooks` (or `/v1/me`) → assert one rotate call (count it in the handler or with a spy) and two 200 results
+- The required test must have a clear name, e.g. `two parallel 401s share one rotate and both retries succeed`. Use the real mock handlers: `resetDb()` → login → issue → move time past 30 s → two parallel `GET /v1/webhooks` (or `/v1/me`) → assert one rotate call (count it in the handler or with a spy) and two 200 results
 - Moving time: fake only `Date` (e.g. `vi.useFakeTimers({ toFake: ['Date'] })` or `vi.setSystemTime`) so promises and fetch keep working. Verify with Vitest 5 docs
 - Do not store `device_session_token` anywhere: it is a return value passed straight into `issueSession`
 - Retry limits are per request: at most one 419 retry and one 401 retry

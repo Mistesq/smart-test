@@ -29,8 +29,8 @@ WebhookList = { data: Webhook[], paging: { pages: { current, last }, results: { 
 
 ## Notes
 
-- 404 on PUT is not in the brief's contract but is the only sensible answer for an unknown id. Mention it in README
-- Error messages follow the brief's Laravel style (`The name field is required.`, `The url must be a valid URL.`)
+- 404 on PUT is not in the API contract but is the only sensible answer for an unknown id. Mention it in README
+- Error messages follow the spec's Laravel style (`The name field is required.`, `The url must be a valid URL.`)
 - Use `created_at` as an ISO string. Keep the seed deterministic (no `Math.random()`)
 - Reuse `requireSession`, the CSRF guard and the error helper from mock phase 1. No duplicated checks
 

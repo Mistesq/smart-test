@@ -1,6 +1,6 @@
-# Smart Sender webhooks
+# smart-test
 
-Test assignment for the Senior Frontend Engineer role at Smart Sender. A small React SPA where you sign in, browse webhooks and edit them. The API is fully mocked with [MSW](https://mswjs.io) and runs in the browser. The main subject is the client session: device-token login, a 30-second session with transparent rotate-and-retry, one shared rotate for parallel 401s, CSRF handling, list state kept in the URL, and server-side form errors.
+A small React SPA where you sign in, browse webhooks and edit them. The API is fully mocked with [MSW](https://mswjs.io) and runs in the browser. The main subject is the client session: device-token login, a 30-second session with transparent rotate-and-retry, one shared rotate for parallel 401s, CSRF handling, list state kept in the URL, and server-side form errors.
 
 ## Quick start
 
@@ -63,9 +63,9 @@ Layers go one way: UI → TanStack Query hooks → `api/` functions → `request
 ## Known limitations
 
 - **The mock db resets on page reload.** MSW runs in the page, so a reload loses the session and any edits. After signing in again you return to the URL you were on.
-- **The session lives 30 s**, per the brief. Rotate is transparent: in the Network tab you will see `401 → POST /auth/token/rotate → retry`.
+- **The session lives 30 s**, per the spec. Rotate is transparent: in the Network tab you will see `401 → POST /auth/token/rotate → retry`.
 - **Unsaved form changes are lost if the session ends while you edit.** After signing in you return to the edit page, still linked to the same list page and search, but with the saved values.
-- **`PUT /v1/webhooks/{id}` returns 404 for an unknown id.** The brief's contract does not list this response.
+- **`PUT /v1/webhooks/{id}` returns 404 for an unknown id.** The API contract does not list this response.
 - **The captcha is a stub.** The client sends a static `X-Captcha-Token: test-captcha`, and the mock only checks that it is not empty.
 
 All assumptions (A1-A14) and their alternatives are listed in [`context/project-overview.md`](context/project-overview.md#assumptions).
@@ -75,7 +75,7 @@ All assumptions (A1-A14) and their alternatives are listed in [`context/project-
 Developed with [Claude Code](https://claude.com/claude-code). The harness is part of the repo:
 
 - [`CLAUDE.md`](CLAUDE.md) and [`AGENTS.md`](AGENTS.md): commands, installed versions and a warning not to rely on remembered library APIs.
-- [`context/`](context/): project overview (the brief broken down, plus assumptions), coding standards, workflow rules, and [`current-feature.md`](context/current-feature.md) with the history of every phase.
+- [`context/`](context/): project overview (the spec broken down, plus assumptions), coding standards, workflow rules, and [`current-feature.md`](context/current-feature.md) with the history of every phase.
 - [`context/features/`](context/features/): one spec per phase (setup → mock → api → auth → webhooks → delivery).
 - [`.claude/`](.claude/): the `specs` and `feature` skills that drive the workflow, and the `code-scanner` review agent.
 

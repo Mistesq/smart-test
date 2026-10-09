@@ -1,8 +1,8 @@
 @AGENTS.md
 
-# smart-sender-test
+# smart-test
 
-Smart Sender senior frontend test assignment (React SPA). Product details: TODO, from `context/project-spec.md`.
+React SPA for browsing and editing webhooks against an API mocked with MSW. Product details: `context/project-overview.md`.
 
 ## Context Files
 
