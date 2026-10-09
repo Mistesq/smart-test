@@ -1,4 +1,4 @@
-# Current Feature: Delivery Phase 1 - README & Final Checks
+# Current Feature
 
 <!-- H1 gets the feature name when active, e.g. "# Current Feature: Add Navbar" -->
 
@@ -6,46 +6,15 @@
 
 <!-- Not Started | In Progress | Complete -->
 
-In Progress
+Not Started
 
 ## Goals
 
 <!-- Checklist of what success looks like, filled by `/feature load`. Each goal is checked off when done, so the list doubles as plan vs actual. -->
 
-- [x] Replace the Vite template `README.md`: short description, stack with versions, requirements (`Node ^20.19.0 || >=22.12.0`, Vite 8 requirement), `npm install`, `npm run dev`, `npm run build && npm run preview`
-- [x] `engines.node: "^20.19.0 || >=22.12.0"` in `package.json` (no `.nvmrc`)
-- [x] Tests section: `npm test`, the command to run only the required test, its file and exact name `two parallel 401s share one rotate and both retries succeed`
-- [x] Test credentials: `admin@example.com` / `password123`
-- [x] Short architecture (api / mocks / features) and key decisions, each checked against the code: one HTTP client for headers/CSRF/419/401, shared rotate + generation counter, single-flight CSRF, auth endpoints excluded from rotate, URL as the source of truth for list state (replace vs push), Zod at every boundary, MSW also in the production build, edit as a separate page
-- [x] Known limitations (only what a reviewer notices): mock db resets on page reload, 30 s session per the brief with transparent rotate, PUT on an unknown id → 404, captcha is a static token. Link to `context/project-overview.md` (A1-A14) instead of repeating the assumptions
-- [x] "How this was built" section: Claude Code + the harness in the repo (`CLAUDE.md`, `AGENTS.md`, `context/`, `.claude/`), cycle specs → feature → code-scanner → review. Decomposition, session and retry design, review and verification are mine
-- [x] README note on `.mcp.json`: on macOS/Linux replace `"command": "cmd", "args": ["/c", "npx", ...]` with `"command": "npx"`
-- [x] Delete `CLAUDE.local.md.example` and `.mcp.json.example` (confirmed); keep `.mcp.json` as is
-- [x] Replace the Vite logo in `public/favicon.svg` with a simple neutral SVG (1-2 colors); keep the `index.html` link
-- [x] One constant for the `'/webhooks'` path, used everywhere (routes, redirects, `getListReturnTarget`)
-- [x] `LOGIN_PATH` in `paths.ts`, used in `router.tsx`, `redirect.ts`, `useLogout.ts` and `ProtectedRoute.tsx`; tests keep literals
-- [x] Bundle under 500 kB per chunk without raising `chunkSizeWarningLimit`: MSW through a dynamic `import()` in `main.tsx` (`window.__msw` and preview mocks unchanged), Rolldown `codeSplitting` groups `react` / `mui` / `vendor` in `vite.config.ts`; README describes the split
-- [x] Full-project code-scanner audit fixes: (1) the edit page's list context survives a session expiry: `RedirectState.from.listLink` (validated by `parseListLinkState`, moved with `ListLinkState` to `src/lib/listLinkState.ts`), restored by the login page's `<Navigate state>`, invalid state → plain `/webhooks`; (2) a shared rotate that succeeds after logout no longer resends the waiting requests (`expired ? 'fail' : 'retry'`); (4) README: `GET /csrf` uses `fetch` directly; README limitation: unsaved form changes are lost on session expiry. Tests: flow and invalid-state tests in `redirect.test.ts`, MSW request count in `session.test.ts`; browser check of expiry on the edit page → sign-in → Cancel back to the list params
-- [x] Final gates pass, output of each shown: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build` (no warnings)
-
 ## Notes
 
 <!-- Additional context, constraints, API contract, out of scope. -->
-
-- README is in English, short, written for a reviewer who has 10 minutes. Do not claim anything that is not implemented
-- Node requirement comes from Vite 8: `^20.19.0 || >=22.12.0` (local: v24.4.0)
-- Do not commit `smart-sender-senior-frontend-test.pdf` (already gitignored)
-- Scaffold decisions: delete `CLAUDE.local.md.example` and `.mcp.json.example`; keep `.mcp.json` (Windows `cmd /c`); redraw `public/favicon.svg`
-- Bundle: was one 1,165 kB chunk (388 kB gzip). Now `react` 313 kB, `mui` 251 kB, `vendor` 158 kB, app 17 kB (all preloaded) and `browser` (mocks + MSW) 426 kB loaded by the dynamic import. Vendor groups use `tags: ['$initial']` (Rolldown 1.2), otherwise the `node_modules` group would pull MSW into the startup chunk
-- Audit accepted (not fixed): 419 → 401 → 419 gets no second CSRF retry (unreachable with the fixed mock token); `FieldErrors` / `User` / `Webhook` types duplicated between mocks and api, so the mock stays independent of client schemas
-- Out of scope: new features, refactors beyond the path constants and chunk split, deployment
-
-### Testing steps (from spec)
-
-1. Fresh clone → follow README exactly → app runs, sign in with the listed credentials works
-2. `npm test` → the required rotate test is listed and passes
-3. `npm run lint`, `npm run typecheck`, `npm run build` → no errors or warnings
-4. `npm run preview` → app works with MSW in the production build
 
 ## History
 
@@ -60,3 +29,4 @@ In Progress
 - Auth Phase 1: `authStore.ts` (`useSyncExternalStore`, `authenticated` or `anonymous` with reason `initial | logout | expired`, `acknowledgeLogout()` on login page mount, `resetAuthStore()` in test setup), login page (react-hook-form + Zod, MUI `inputRef`, submit disabled while pending, 422 field errors under inputs, other errors in a `root.serverError` alert, "Your session has expired" notice), `authFlow.ts` (`signIn`: login → `startSession` → `getMe`, device token local only, closes the issued session if `getMe` fails; `signOut`: `endSession()` before revoke, revoke errors ignored) wrapped by `useLogin` (`['me']` seeded, `gcTime: 0` so the password does not linger in the mutation cache) and `useLogout` (push `/login`, `queryClient.clear()`, reason `logout`), redirect after sign-in done by the login page's `<Navigate>` (one navigation, no race), `ProtectedRoute` (keeps pathname + search; renders nothing during logout navigation), `redirect.ts` (Zod-validated return target, no `//host` or `/login`), `AppLayout` (user name + logout), `useMe` (`staleTime: Infinity`), `endSession()` in `session.ts` (no expired handler, drops an in-flight rotate), expired handler registered in `main.tsx`, `getErrorMessage()` in `src/api/errors.ts`, `src/lib/formErrors.ts` (shared 422 → form mapper, `src/lib/` added to coding standards); browser check of spec steps 1-5 (fixed a duplicate `/login` history entry from StrictMode's double `<Navigate>` push); code-scanner audit fixes L1-L3 with tests; accepted: MSW event ordering in `authFlow.test.ts` (test-only), expired notice next to the form error if `/v1/me` gets a 401 on retry right after issue; expiry redirect to re-check in the UI in webhooks-phase-1; 107 tests
 - Webhooks Phase 1: `src/api/webhooks.ts` (`getWebhooks`, `getWebhook`, `updateWebhook`, `webhookSchema` / `webhookListSchema`, empty search left out of the request), `listParams.ts` (Zod-parsed page with fallback to 1 and trimmed search, builder that omits defaults, `toListSearch()`, `ListLinkState`), `useWebhooks` (`['webhooks', { page, search }]`, limit 10, `keepPreviousData`, `WEBHOOKS_QUERY_KEY` for phase 2 invalidation), `WebhookSearch` (300 ms debounce, `replace` + drop page, write skipped when the trimmed value equals the URL, re-sync from the URL on back/forward), `WebhooksPage` (page change pushes, page beyond the last replaced via `<Navigate replace>` once real data arrives, loading / empty / error + Retry, an empty placeholder shows the loading state), `WebhooksTable` (name links to the edit page with `{ listSearch }` router state, URL, active chip, dimmed while placeholder), dev `window.__msw = { worker, http, HttpResponse }`; browser check of spec steps 1-6 and the session-expiry redirect carried over from auth-phase-1; accepted: a refetch error on cached data replaces the table with the alert, a keystroke during the input's own URL write can be lost; 128 tests
 - Webhooks Phase 2: `WebhookEditPage` at `/webhooks/:id/edit` (Zod-validated `:id` via `parseWebhookId`, invalid id → not found without a request; loading / 404 not found with a link back / error + Retry; loaded data wins over a later refetch error, so edits are not dropped), `webhookFormSchema` (name and url required after trim, http/https rule server-only per A11, parsed trimmed values are sent), `useWebhook` (`['webhook', id]`), `updateWebhookOptions` / `useUpdateWebhook` (`mutationOptions`, context `client`: `setQueryData` on the detail, invalidate `WEBHOOKS_QUERY_KEY`), 422 through the shared `applyFormError`, Save disabled while pending or not dirty, `getListReturnTarget` (Zod-validated router state, search rebuilt from parsed list params), Save and Cancel return to the list with `replace` so Back does not reopen the form, `PlaceholderPage` removed; browser check of spec steps 1-5 and the `replace` history entry; tests: 422 → url field on the mock, cache update after save, form schema, id parsing, return target; accepted: a whitespace-only edit enables Save and sends an unchanged PUT, open form keeps its values if the detail refetch returns newer data, the list briefly shows the old name until its refetch, PUT 404 for an unknown id to be noted in README; recovered after a BSOD zeroed `.git/HEAD|config|ORIG_HEAD|refs/heads/main` and `useWebhook.ts` (rebuilt from reflog and `FETCH_HEAD`, `fsck` clean); 154 tests
+- Delivery Phase 1: README for reviewers (run, Node `^20.19.0 || >=22.12.0`, test credentials, required test file/name and run-one command, architecture, key decisions checked against the code, known limitations with a link to A1-A14, how this was built, `.mcp.json` note for macOS/Linux), `engines.node` in `package.json`, neutral favicon, `CLAUDE.local.md.example` and `.mcp.json.example` removed, `src/lib/paths.ts` (`LOGIN_PATH`, `WEBHOOKS_PATH`, `WEBHOOK_EDIT_ROUTE`, `webhookEditPath`; tests keep literals), MSW through a dynamic `import()` in `main.tsx` (render still after `worker.start()`, `window.__msw` in dev), Rolldown `codeSplitting` groups `react` / `mui` / `vendor` with `tags: ['$initial']` so MSW stays in its own lazily loaded chunk (largest chunk 426 kB, no size warning); full-project code-scanner audit fixes: the edit page's list context survives a session-expiry login redirect (`RedirectState.from.listLink`, `ListLinkState` + `parseListLinkState` moved to `src/lib/listLinkState.ts`, invalid state → plain `/webhooks`), a shared rotate that succeeds after logout no longer resends the waiting requests, README `GET /csrf` wording and unsaved-changes limitation; browser checks in preview (sign-in → `?page=2` → edit → Cancel) and dev (expiry on the edit page → sign-in → Cancel back to the list params); accepted: 419 → 401 → 419 gets no second CSRF retry (unreachable with the fixed mock token), types duplicated between mocks and api; 160 tests
