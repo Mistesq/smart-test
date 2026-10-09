@@ -1,4 +1,4 @@
-# Current Feature: Webhooks Phase 2 - Edit Form with Server Errors
+# Current Feature
 
 <!-- H1 gets the feature name when active, e.g. "# Current Feature: Add Navbar" -->
 
@@ -6,41 +6,15 @@
 
 <!-- Not Started | In Progress | Complete -->
 
-In Progress
+Not Started
 
 ## Goals
 
 <!-- Checklist of what success looks like, filled by `/feature load`. Each goal is checked off when done, so the list doubles as plan vs actual. -->
 
-- [x] `:id` route param validated with Zod (positive integer) before any API call; invalid id → not-found state, no request
-- [x] `useWebhook(id)` query (`['webhook', id]`) in `src/features/webhooks/useWebhook.ts`
-- [x] `WebhookEditPage` at `/webhooks/:id/edit` (replaces the placeholder in `router.tsx`): loading state; 404 → "Webhook not found" with a link back to the list; other errors → `Alert` + Retry
-- [x] `webhookFormSchema.ts`: `name` and `url` required after trim (A11). No URL format rule on the client
-- [x] Form: react-hook-form + `zodResolver`, default values from the loaded webhook
-- [x] `useUpdateWebhook` mutation → `updateWebhook(id, body)`. Save disabled while submitting or when the form is not dirty
-- [x] 422 → shared `applyFormError` from `src/lib/formErrors.ts` → first message under `name` / `url`; unknown payload keys and other errors → form-level `Alert` (`root.serverError`)
-- [x] Success (A10): `setQueryData(['webhook', id], updated)`, invalidate `WEBHOOKS_QUERY_KEY`, navigate back to the list with its original search string
-- [x] Cancel → back to the list with its original search string; direct visit (no list state) → `/webhooks`
-- [x] `src/features/webhooks/updateWebhook.test.ts`: `updateWebhook` against the mock with an invalid URL → `ApiError` 422 → `mapFormError` returns `{ url: '...' }`
-
 ## Notes
 
 <!-- Additional context, constraints, API contract, out of scope. -->
-
-- Contract: `GET /v1/webhooks/{id}` → 200 `Webhook` | 401 | 404; `PUT /v1/webhooks/{id}` `{ name, url }` → 200 `Webhook` | 401 | 422 (419 handled by the client). Mock also returns 404 on PUT for an unknown id (to be noted in README)
-- API functions already exist in `src/api/webhooks.ts` (`getWebhook`, `updateWebhook`, `WebhookInput`). Do not add new ones
-- Reuse `mapFormError` / `applyFormError` / `FORM_ERROR_KEY` from `src/lib/formErrors.ts`. No second mapper
-- The URL format rule is deliberately server-only, so the 422 path is visible in the UI. The server stays the source of truth
-- Return target: the list row passes `ListLinkState` (`{ listSearch }`) as router state. Location state is external input (survives reload in history), so validate it with Zod before using it in a navigation; anything invalid → `/webhooks`
-- `['webhook', id]` and `['webhooks', ...]` are separate key roots, so invalidating `WEBHOOKS_QUERY_KEY` does not touch the detail cache
-- Out of scope: toggling `active`, creating or deleting webhooks, success toast, modal edit (A1 alt)
-- Testing steps (from the spec):
-  1. From `/webhooks?page=2&search=ate` ("ate" matches 14 webhooks), click a row → edit page with name and URL filled
-  2. Clear the name → client error under Name, no request sent. URL `ftp://x` → request is sent → 422 → server message shown under the URL field
-  3. Change the name, keeping "ate" in it → Save → back on `/webhooks?page=2&search=ate` with the new name in the table
-  4. `/webhooks/9999/edit` → not-found message with a working link back
-  5. Wait 30 s, then Save → PUT 401 → one rotate → PUT retried → success
-  6. `npm test` (422 mapping test), `npm run typecheck`, `npm run lint` pass
 
 ## History
 
@@ -54,3 +28,4 @@ In Progress
 - API Phase 2: `src/api/session.ts` (single-flight rotate shared by parallel 401s, session generation captured before each send so a late 401 from an older generation retries without a new rotate, `/auth/*` excluded from 401 handling, `isRetry` 401 or failed rotate → `expired` flag + session-expired handler once per expiry, a rotate failing after a new session retries under it, `startSession(token)` as the only way to start a session (calls `issueSession`, bumps the generation, clears `expired`), `setSessionExpiredHandler`, `installSessionHandling()` returning the uninstall function, called in `main.tsx`, `resetSession()` in test setup), `src/api/auth.ts` (`login` with `X-Captcha-Token: test-captcha`, `issueSession`, `rotateSession`, `revokeSession`, `getMe`, `userSchema`; issue/rotate accept any 200 body), `src/api/fingerprint.ts` (16 random bytes → 32 hex in localStorage, never throws, page-level fallback when storage is blocked or full), `request()` `headers` option (client headers set last via `Headers`, so they cannot be overridden in any case), required test `two parallel 401s share one rotate and both retries succeed` on the real mock handlers with only `Date` mocked, plus expiry, late-401, auth-path, auth endpoint and fingerprint tests (75 total); code-scanner audit fixes; accepted: uninstall mid-request, `resetSession()` during a rotate, MSW event ordering (test-only); moved to auth-phase-1: logout calls `endSession()` without the expired handler
 - Auth Phase 1: `authStore.ts` (`useSyncExternalStore`, `authenticated` or `anonymous` with reason `initial | logout | expired`, `acknowledgeLogout()` on login page mount, `resetAuthStore()` in test setup), login page (react-hook-form + Zod, MUI `inputRef`, submit disabled while pending, 422 field errors under inputs, other errors in a `root.serverError` alert, "Your session has expired" notice), `authFlow.ts` (`signIn`: login → `startSession` → `getMe`, device token local only, closes the issued session if `getMe` fails; `signOut`: `endSession()` before revoke, revoke errors ignored) wrapped by `useLogin` (`['me']` seeded, `gcTime: 0` so the password does not linger in the mutation cache) and `useLogout` (push `/login`, `queryClient.clear()`, reason `logout`), redirect after sign-in done by the login page's `<Navigate>` (one navigation, no race), `ProtectedRoute` (keeps pathname + search; renders nothing during logout navigation), `redirect.ts` (Zod-validated return target, no `//host` or `/login`), `AppLayout` (user name + logout), `useMe` (`staleTime: Infinity`), `endSession()` in `session.ts` (no expired handler, drops an in-flight rotate), expired handler registered in `main.tsx`, `getErrorMessage()` in `src/api/errors.ts`, `src/lib/formErrors.ts` (shared 422 → form mapper, `src/lib/` added to coding standards); browser check of spec steps 1-5 (fixed a duplicate `/login` history entry from StrictMode's double `<Navigate>` push); code-scanner audit fixes L1-L3 with tests; accepted: MSW event ordering in `authFlow.test.ts` (test-only), expired notice next to the form error if `/v1/me` gets a 401 on retry right after issue; expiry redirect to re-check in the UI in webhooks-phase-1; 107 tests
 - Webhooks Phase 1: `src/api/webhooks.ts` (`getWebhooks`, `getWebhook`, `updateWebhook`, `webhookSchema` / `webhookListSchema`, empty search left out of the request), `listParams.ts` (Zod-parsed page with fallback to 1 and trimmed search, builder that omits defaults, `toListSearch()`, `ListLinkState`), `useWebhooks` (`['webhooks', { page, search }]`, limit 10, `keepPreviousData`, `WEBHOOKS_QUERY_KEY` for phase 2 invalidation), `WebhookSearch` (300 ms debounce, `replace` + drop page, write skipped when the trimmed value equals the URL, re-sync from the URL on back/forward), `WebhooksPage` (page change pushes, page beyond the last replaced via `<Navigate replace>` once real data arrives, loading / empty / error + Retry, an empty placeholder shows the loading state), `WebhooksTable` (name links to the edit page with `{ listSearch }` router state, URL, active chip, dimmed while placeholder), dev `window.__msw = { worker, http, HttpResponse }`; browser check of spec steps 1-6 and the session-expiry redirect carried over from auth-phase-1; accepted: a refetch error on cached data replaces the table with the alert, a keystroke during the input's own URL write can be lost; 128 tests
+- Webhooks Phase 2: `WebhookEditPage` at `/webhooks/:id/edit` (Zod-validated `:id` via `parseWebhookId`, invalid id → not found without a request; loading / 404 not found with a link back / error + Retry; loaded data wins over a later refetch error, so edits are not dropped), `webhookFormSchema` (name and url required after trim, http/https rule server-only per A11, parsed trimmed values are sent), `useWebhook` (`['webhook', id]`), `updateWebhookOptions` / `useUpdateWebhook` (`mutationOptions`, context `client`: `setQueryData` on the detail, invalidate `WEBHOOKS_QUERY_KEY`), 422 through the shared `applyFormError`, Save disabled while pending or not dirty, `getListReturnTarget` (Zod-validated router state, search rebuilt from parsed list params), Save and Cancel return to the list with `replace` so Back does not reopen the form, `PlaceholderPage` removed; browser check of spec steps 1-5 and the `replace` history entry; tests: 422 → url field on the mock, cache update after save, form schema, id parsing, return target; accepted: a whitespace-only edit enables Save and sends an unchanged PUT, open form keeps its values if the detail refetch returns newer data, the list briefly shows the old name until its refetch, PUT 404 for an unknown id to be noted in README; recovered after a BSOD zeroed `.git/HEAD|config|ORIG_HEAD|refs/heads/main` and `useWebhook.ts` (rebuilt from reflog and `FETCH_HEAD`, `fsck` clean); 154 tests
