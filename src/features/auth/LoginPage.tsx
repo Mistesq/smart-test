@@ -28,7 +28,10 @@ export function LoginPage() {
   }, [])
 
   // Covers both a successful sign-in and opening /login while already signed in.
-  if (auth.status === 'authenticated') return <Navigate to={getRedirectTarget(location.state)} replace />
+  if (auth.status === 'authenticated') {
+    const target = getRedirectTarget(location.state)
+    return <Navigate to={target.to} state={target.state} replace />
+  }
 
   const sessionExpired = auth.reason === 'expired'
   const onSubmit = handleSubmit((values) => {

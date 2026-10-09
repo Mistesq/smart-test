@@ -267,6 +267,38 @@ describe('session: logout', () => {
     expect(onExpired).not.toHaveBeenCalled()
   })
 
+  it('does not retry requests whose shared rotate succeeds after logout', async () => {
+    const responses = recordResponses()
+    const onExpired = vi.fn()
+    setSessionExpiredHandler(onExpired)
+    await signIn()
+    moveClockPastSessionTtl()
+    const rotateArrived = deferred()
+    const releaseRotate = deferred()
+    server.use(
+      http.post(
+        '*/auth/token/rotate',
+        async () => {
+          rotateArrived.resolve()
+          await releaseRotate.promise
+          // Falls through to the real handler, so the rotate succeeds.
+        },
+        { once: true },
+      ),
+    )
+
+    const pending = Promise.allSettled([getMe(), getMe()])
+    await rotateArrived.promise
+    endSession()
+    releaseRotate.resolve()
+
+    const results = await pending
+    results.forEach(expectUnauthorized)
+    expect(responses.count('/auth/token/rotate', 200)).toBe(1)
+    expect(responses.count('/v1/me')).toBe(2)
+    expect(onExpired).not.toHaveBeenCalled()
+  })
+
   it('does not let a rotate still in flight at logout expire the next session', async () => {
     const onExpired = vi.fn()
     setSessionExpiredHandler(onExpired)

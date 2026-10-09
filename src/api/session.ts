@@ -70,7 +70,8 @@ async function handleUnauthorized(context: SessionContext, info: UnauthorizedInf
     return 'fail'
   }
   if (context.generation < generation) return 'retry'
-  if (await sharedRotate()) return 'retry'
+  // A logout while the rotate was running wins: the request is not resent after it.
+  if (await sharedRotate()) return expired ? 'fail' : 'retry'
   // A new session started while the rotate was failing: the request is retried under it instead of ending it.
   if (context.generation < generation) return 'retry'
   expireSession()

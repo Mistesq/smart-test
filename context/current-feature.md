@@ -1,4 +1,4 @@
-# Current Feature
+# Current Feature: Delivery Phase 1 - README & Final Checks
 
 <!-- H1 gets the feature name when active, e.g. "# Current Feature: Add Navbar" -->
 
@@ -6,15 +6,46 @@
 
 <!-- Not Started | In Progress | Complete -->
 
-Not Started
+In Progress
 
 ## Goals
 
 <!-- Checklist of what success looks like, filled by `/feature load`. Each goal is checked off when done, so the list doubles as plan vs actual. -->
 
+- [x] Replace the Vite template `README.md`: short description, stack with versions, requirements (`Node ^20.19.0 || >=22.12.0`, Vite 8 requirement), `npm install`, `npm run dev`, `npm run build && npm run preview`
+- [x] `engines.node: "^20.19.0 || >=22.12.0"` in `package.json` (no `.nvmrc`)
+- [x] Tests section: `npm test`, the command to run only the required test, its file and exact name `two parallel 401s share one rotate and both retries succeed`
+- [x] Test credentials: `admin@example.com` / `password123`
+- [x] Short architecture (api / mocks / features) and key decisions, each checked against the code: one HTTP client for headers/CSRF/419/401, shared rotate + generation counter, single-flight CSRF, auth endpoints excluded from rotate, URL as the source of truth for list state (replace vs push), Zod at every boundary, MSW also in the production build, edit as a separate page
+- [x] Known limitations (only what a reviewer notices): mock db resets on page reload, 30 s session per the brief with transparent rotate, PUT on an unknown id → 404, captcha is a static token. Link to `context/project-overview.md` (A1-A14) instead of repeating the assumptions
+- [x] "How this was built" section: Claude Code + the harness in the repo (`CLAUDE.md`, `AGENTS.md`, `context/`, `.claude/`), cycle specs → feature → code-scanner → review. Decomposition, session and retry design, review and verification are mine
+- [x] README note on `.mcp.json`: on macOS/Linux replace `"command": "cmd", "args": ["/c", "npx", ...]` with `"command": "npx"`
+- [x] Delete `CLAUDE.local.md.example` and `.mcp.json.example` (confirmed); keep `.mcp.json` as is
+- [x] Replace the Vite logo in `public/favicon.svg` with a simple neutral SVG (1-2 colors); keep the `index.html` link
+- [x] One constant for the `'/webhooks'` path, used everywhere (routes, redirects, `getListReturnTarget`)
+- [x] `LOGIN_PATH` in `paths.ts`, used in `router.tsx`, `redirect.ts`, `useLogout.ts` and `ProtectedRoute.tsx`; tests keep literals
+- [x] Bundle under 500 kB per chunk without raising `chunkSizeWarningLimit`: MSW through a dynamic `import()` in `main.tsx` (`window.__msw` and preview mocks unchanged), Rolldown `codeSplitting` groups `react` / `mui` / `vendor` in `vite.config.ts`; README describes the split
+- [x] Full-project code-scanner audit fixes: (1) the edit page's list context survives a session expiry: `RedirectState.from.listLink` (validated by `parseListLinkState`, moved with `ListLinkState` to `src/lib/listLinkState.ts`), restored by the login page's `<Navigate state>`, invalid state → plain `/webhooks`; (2) a shared rotate that succeeds after logout no longer resends the waiting requests (`expired ? 'fail' : 'retry'`); (4) README: `GET /csrf` uses `fetch` directly; README limitation: unsaved form changes are lost on session expiry. Tests: flow and invalid-state tests in `redirect.test.ts`, MSW request count in `session.test.ts`; browser check of expiry on the edit page → sign-in → Cancel back to the list params
+- [x] Final gates pass, output of each shown: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build` (no warnings)
+
 ## Notes
 
 <!-- Additional context, constraints, API contract, out of scope. -->
+
+- README is in English, short, written for a reviewer who has 10 minutes. Do not claim anything that is not implemented
+- Node requirement comes from Vite 8: `^20.19.0 || >=22.12.0` (local: v24.4.0)
+- Do not commit `smart-sender-senior-frontend-test.pdf` (already gitignored)
+- Scaffold decisions: delete `CLAUDE.local.md.example` and `.mcp.json.example`; keep `.mcp.json` (Windows `cmd /c`); redraw `public/favicon.svg`
+- Bundle: was one 1,165 kB chunk (388 kB gzip). Now `react` 313 kB, `mui` 251 kB, `vendor` 158 kB, app 17 kB (all preloaded) and `browser` (mocks + MSW) 426 kB loaded by the dynamic import. Vendor groups use `tags: ['$initial']` (Rolldown 1.2), otherwise the `node_modules` group would pull MSW into the startup chunk
+- Audit accepted (not fixed): 419 → 401 → 419 gets no second CSRF retry (unreachable with the fixed mock token); `FieldErrors` / `User` / `Webhook` types duplicated between mocks and api, so the mock stays independent of client schemas
+- Out of scope: new features, refactors beyond the path constants and chunk split, deployment
+
+### Testing steps (from spec)
+
+1. Fresh clone → follow README exactly → app runs, sign in with the listed credentials works
+2. `npm test` → the required rotate test is listed and passes
+3. `npm run lint`, `npm run typecheck`, `npm run build` → no errors or warnings
+4. `npm run preview` → app works with MSW in the production build
 
 ## History
 

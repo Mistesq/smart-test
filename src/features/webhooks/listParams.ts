@@ -1,7 +1,8 @@
 import { z } from 'zod'
+import { parseListLinkState } from '../../lib/listLinkState.ts'
+import { WEBHOOKS_PATH } from '../../lib/paths.ts'
 
 export const DEFAULT_PAGE = 1
-export const WEBHOOKS_PATH = '/webhooks'
 
 // Invalid params fall back to defaults instead of failing the page (A9). The search is trimmed,
 // so the URL value and the value the search input compares against are always the same shape.
@@ -11,13 +12,6 @@ const listParamsSchema = z.object({
 })
 
 export type ListParams = z.infer<typeof listParamsSchema>
-
-// Location state a list row passes to the edit page, so it can return to the same page and search.
-export type ListLinkState = {
-  listSearch: string
-}
-
-const listLinkStateSchema = z.object({ listSearch: z.string() })
 
 export function parseListParams(searchParams: URLSearchParams): ListParams {
   return listParamsSchema.parse({
@@ -41,10 +35,10 @@ export function toListSearch(params: ListParams): string {
   return search ? `?${search}` : ''
 }
 
-// Where the edit page goes back to. History state is untyped and survives a reload, so it is validated and the
-// search is rebuilt from the parsed params: only a valid page and search reach the URL. No state → the plain list.
+// Where the edit page goes back to. The search is rebuilt from the parsed params, so only a valid page
+// and search reach the URL. No valid state → the plain list.
 export function getListReturnTarget(state: unknown): string {
-  const parsed = listLinkStateSchema.safeParse(state)
-  if (!parsed.success) return WEBHOOKS_PATH
-  return WEBHOOKS_PATH + toListSearch(parseListParams(new URLSearchParams(parsed.data.listSearch)))
+  const linkState = parseListLinkState(state)
+  if (!linkState) return WEBHOOKS_PATH
+  return WEBHOOKS_PATH + toListSearch(parseListParams(new URLSearchParams(linkState.listSearch)))
 }

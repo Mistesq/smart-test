@@ -1,7 +1,8 @@
 import { Chip, Link, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material'
 import { Link as RouterLink } from 'react-router'
 import type { Webhook } from '../../api/webhooks.ts'
-import type { ListLinkState } from './listParams.ts'
+import type { ListLinkState } from '../../lib/listLinkState.ts'
+import { webhookEditPath } from '../../lib/paths.ts'
 
 type WebhooksTableProps = {
   webhooks: Webhook[]
@@ -28,7 +29,7 @@ export function WebhooksTable({ webhooks, listSearch, stale }: WebhooksTableProp
           {webhooks.map((webhook) => (
             <TableRow key={webhook.id} hover>
               <TableCell>
-                <Link component={RouterLink} to={`/webhooks/${webhook.id}/edit`} state={linkState}>
+                <Link component={RouterLink} to={webhookEditPath(webhook.id)} state={linkState}>
                   {webhook.name}
                 </Link>
               </TableCell>
